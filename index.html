@@ -22,7 +22,7 @@
         @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         .status-alarm { animation: pulse-red 1s infinite; background-color: #ef4444 !important; }
 
-        /* 確保 Toast 永遠在最前端 */
+        /* 確保 Toast 永遠在最前端，完全不被遮擋 */
         #toastContainer {
             z-index: 99999 !important;
             position: fixed;
@@ -34,14 +34,27 @@
             align-items: center;
             gap: 0.75rem;
             pointer-events: none;
+            width: 100%;
         }
         .toast-item {
             pointer-events: auto;
-            animation: slideDown 0.4s ease-out forwards;
+            animation: slideDown 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
         }
         @keyframes slideDown {
             from { transform: translateY(-100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* 密碼輸入框的高對比樣式 */
+        .high-contrast-input {
+            background-color: #ffffff !important;
+            border: 3px solid #1e293b !important; /* 深藍黑色邊框 */
+            color: #0f172a !important;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+        }
+        .high-contrast-input:focus {
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
         }
     </style>
 </head>
@@ -60,7 +73,7 @@
     </div>
 
     <div id="storeGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <!-- 門市按鈕將由 JS 動態生成 -->
+        <!-- 門市按鈕由 JS 動態生成 -->
     </div>
 </div>
 
@@ -71,7 +84,7 @@
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </button>
             <div>
-                <h2 id="currentStoreTitle" class="text-xl font-black italic">門市名稱</h2>
+                <h2 id="currentStoreTitle" class="text-xl font-black italic text-slate-900">門市名稱</h2>
                 <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Live Monitoring Terminal</p>
             </div>
         </div>
@@ -92,7 +105,7 @@
                 <h3 id="statTotal" class="text-3xl font-black text-slate-900 italic">0</h3>
             </div>
             <div id="alarmBox" class="bg-white p-5 rounded-2xl border shadow-sm transition-colors">
-                <p class="text-slate-400 text-[10px] font-black uppercase mb-1">異常待處置</p>
+                <p class="text-slate-400 text-[10px] font-black uppercase mb-1 text-red-500">異常待處置</p>
                 <h3 id="statAlarm" class="text-3xl font-black text-red-600 italic">0</h3>
             </div>
             <div class="bg-white p-5 rounded-2xl border shadow-sm md:col-span-2 overflow-hidden">
@@ -107,11 +120,10 @@
                 <table class="w-full text-left border-collapse compact-table min-w-[1400px]">
                     <thead class="bg-slate-50 border-b">
                         <tr id="tableHeaderRow">
-                            <!-- 標題由 JS 根據門市類型動態產生 -->
+                            <!-- 標題動態產生 -->
                         </tr>
                     </thead>
                     <tbody id="reportTableBody" class="divide-y divide-slate-100">
-                        <!-- 資料列 -->
                     </tbody>
                 </table>
             </div>
@@ -119,16 +131,25 @@
     </main>
 </div>
 
-<div id="loginModal" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md hidden items-center justify-center z-[10000]">
-    <div class="bg-white p-10 rounded-[3rem] shadow-2xl w-full max-w-sm text-center border-t-8 border-blue-600">
-        <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+<div id="loginModal" class="fixed inset-0 bg-slate-900/95 backdrop-blur-xl hidden items-center justify-center z-[10010]">
+    <div class="bg-white p-10 rounded-[3rem] shadow-2xl w-full max-w-sm text-center border-t-[12px] border-blue-600 relative">
+        <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-6 transform -rotate-12 shadow-lg">
             <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         </div>
-        <h2 id="loginModalTitle" class="text-2xl font-black text-slate-900 mb-1">中港行館</h2>
-        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-8">Security Verification Required</p>
-        <input type="password" id="passwordInput" placeholder="請輸入管理密碼" class="w-full p-4 bg-slate-100 border-2 border-transparent focus:border-blue-500 rounded-2xl text-center text-xl font-bold transition mb-4 outline-none">
-        <button onclick="handleLogin()" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl hover:bg-blue-700 active:scale-95 transition shadow-lg shadow-blue-200">授權並進入</button>
-        <button onclick="closeLoginModal()" class="w-full text-slate-400 text-xs font-bold mt-4 hover:text-slate-600 transition">取消返回</button>
+        
+        <h2 id="loginModalTitle" class="text-3xl font-black text-slate-900 mb-1">中港行館</h2>
+        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mb-8">Security Verification Required</p>
+        
+        <!-- 密碼輸入區域 -->
+        <div class="text-left mb-6">
+            <label class="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-2 px-1">Access Password</label>
+            <input type="password" id="passwordInput" placeholder="請輸入管理密碼" 
+                   class="high-contrast-input w-full p-5 rounded-2xl text-center text-3xl font-black transition outline-none placeholder:text-slate-200">
+        </div>
+
+        <button onclick="handleLogin()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl hover:bg-blue-700 active:scale-95 transition shadow-xl shadow-blue-200 text-lg">授權並進入系統</button>
+        
+        <button onclick="closeLoginModal()" class="w-full text-slate-400 text-xs font-bold mt-6 hover:text-slate-900 transition underline underline-offset-4">取消返回門戶</button>
     </div>
 </div>
 
@@ -200,7 +221,6 @@
             grid.appendChild(btn);
         });
 
-        // 監聽 Enter 鍵登入
         document.getElementById('passwordInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleLogin();
         });
@@ -211,40 +231,43 @@
         document.getElementById('loginModalTitle').innerText = store.name;
         document.getElementById('loginModal').classList.remove('hidden');
         document.getElementById('loginModal').classList.add('flex');
-        document.getElementById('passwordInput').focus();
+        document.getElementById('passwordInput').value = '';
+        setTimeout(() => document.getElementById('passwordInput').focus(), 100);
     };
 
     window.closeLoginModal = () => {
         document.getElementById('loginModal').classList.add('hidden');
         document.getElementById('loginModal').classList.remove('flex');
-        document.getElementById('passwordInput').value = '';
     };
 
     window.handleLogin = () => {
         const input = document.getElementById('passwordInput').value;
         if (input === currentStore.pw || input === 'master888') {
-            showToast('授權成功，正在載入資料...', 'bg-green-600');
+            showToast('✅ 授權成功，正在同步數據...', 'bg-green-600');
             document.getElementById('portalPage').classList.add('hidden');
             document.getElementById('loginModal').classList.add('hidden');
             document.getElementById('dashboardPage').classList.remove('hidden');
             document.getElementById('currentStoreTitle').innerText = currentStore.name;
             startSync();
         } else {
-            showToast('密碼錯誤，請重新輸入', 'bg-red-600');
-            document.getElementById('passwordInput').value = '';
+            showToast('❌ 密碼錯誤，請重新確認', 'bg-red-600');
+            const inp = document.getElementById('passwordInput');
+            inp.value = '';
+            inp.classList.add('shake'); // 可以在CSS加震動動畫
+            setTimeout(() => inp.classList.remove('shake'), 500);
         }
     };
 
     function showToast(msg, bg) {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
-        toast.className = `toast-item ${bg} text-white px-8 py-4 rounded-2xl shadow-2xl font-black text-lg flex items-center gap-3 border-2 border-white/20`;
-        toast.innerHTML = `<span class="text-2xl">🚨</span> ${msg}`;
+        toast.className = `toast-item ${bg} text-white px-8 py-5 rounded-[1.5rem] shadow-2xl font-black text-xl flex items-center gap-3 border-4 border-white/30`;
+        toast.innerHTML = `<span>🚨</span> ${msg}`;
         container.appendChild(toast);
         
         setTimeout(() => {
             toast.style.opacity = '0';
-            toast.style.transform = 'translateY(-20px)';
+            toast.style.transform = 'translate(-50%, -20px)';
             setTimeout(() => toast.remove(), 500);
         }, 3000);
     }
@@ -258,7 +281,7 @@
             renderDashboard();
         }, (err) => {
             console.error("Firebase Error:", err);
-            showToast("資料讀取失敗，請檢查權限", "bg-orange-600");
+            showToast("系統連線失敗，請重試", "bg-orange-600");
         });
     }
 
@@ -266,7 +289,6 @@
         const body = document.getElementById('reportTableBody');
         const activeLabels = storeSpecificLabels[currentStore.id] || storeSpecificLabels.default;
         
-        // 渲染表頭
         const headerRow = document.getElementById('tableHeaderRow');
         headerRow.innerHTML = `
             <th class="w-10 text-center">序</th>
@@ -280,7 +302,6 @@
             <th class="min-w-[150px]">備註</th>
         `;
 
-        // 渲染資料列
         if (rawData.length === 0) {
             body.innerHTML = '<tr><td colspan="20" class="py-20 text-center text-slate-400 font-black italic uppercase">No Data Found</td></tr>';
             return;
@@ -314,7 +335,7 @@
 
         document.getElementById('statTotal').innerText = rawData.length;
         document.getElementById('statAlarm').innerText = pendingCount;
-        document.getElementById('alarmBox').className = pendingCount > 0 ? 'bg-red-50 p-5 rounded-2xl border border-red-200 shadow-sm' : 'bg-white p-5 rounded-2xl border shadow-sm';
+        document.getElementById('alarmBox').className = pendingCount > 0 ? 'bg-red-50 p-5 rounded-2xl border border-red-200 shadow-sm animate-pulse' : 'bg-white p-5 rounded-2xl border shadow-sm';
         
         updateMasseurStats();
     }
