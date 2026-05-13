@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>手舞足道集團 - 稽核監控中心 V1.0</title>
+    <title>手舞足道集團 - 稽核監控系統 V1.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -22,7 +22,6 @@
         @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         .status-alarm { animation: pulse-red 1s infinite; background-color: #ef4444 !important; }
 
-        /* 確保 Toast 永遠在最前端，完全不被遮擋 */
         #toastContainer {
             z-index: 99999 !important;
             position: fixed;
@@ -45,10 +44,9 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* 密碼輸入框的高對比樣式 */
         .high-contrast-input {
             background-color: #ffffff !important;
-            border: 3px solid #1e293b !important; /* 深藍黑色邊框 */
+            border: 3px solid #1e293b !important; 
             color: #0f172a !important;
             box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);
         }
@@ -73,7 +71,7 @@
     </div>
 
     <div id="storeGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <!-- 門市按鈕由 JS 動態生成 -->
+        <!-- Stores will be injected here -->
     </div>
 </div>
 
@@ -98,7 +96,6 @@
     </header>
 
     <main class="p-4 md:p-6 max-w-[1900px] mx-auto">
-        <!-- 統計卡片 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div class="bg-white p-5 rounded-2xl border shadow-sm">
                 <p class="text-slate-400 text-[10px] font-black uppercase mb-1">本月稽核總量</p>
@@ -114,17 +111,13 @@
             </div>
         </div>
 
-        <!-- 數據表格 -->
         <div class="bg-white rounded-3xl border shadow-xl overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse compact-table min-w-[1400px]">
                     <thead class="bg-slate-50 border-b">
-                        <tr id="tableHeaderRow">
-                            <!-- 標題動態產生 -->
-                        </tr>
+                        <tr id="tableHeaderRow"></tr>
                     </thead>
-                    <tbody id="reportTableBody" class="divide-y divide-slate-100">
-                    </tbody>
+                    <tbody id="reportTableBody" class="divide-y divide-slate-100"></tbody>
                 </table>
             </div>
         </div>
@@ -133,23 +126,21 @@
 
 <div id="loginModal" class="fixed inset-0 bg-slate-900/95 backdrop-blur-xl hidden items-center justify-center z-[10010]">
     <div class="bg-white p-10 rounded-[3rem] shadow-2xl w-full max-w-sm text-center border-t-[12px] border-blue-600 relative">
-        <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-6 transform -rotate-12 shadow-lg">
+        <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-8 transform -rotate-12 shadow-lg">
             <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         </div>
         
-        <h2 id="loginModalTitle" class="text-3xl font-black text-slate-900 mb-1">中港行館</h2>
-        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mb-8">Security Verification Required</p>
+        <h2 id="loginModalTitle" class="text-3xl font-black text-slate-900 mb-8">門市名稱</h2>
         
-        <!-- 密碼輸入區域 -->
+        <!-- Password Input Area -->
         <div class="text-left mb-6">
-            <label class="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-2 px-1">Access Password</label>
-            <input type="password" id="passwordInput" placeholder="請輸入管理密碼" 
+            <input type="password" id="passwordInput" placeholder="請輸入密碼" 
                    class="high-contrast-input w-full p-5 rounded-2xl text-center text-3xl font-black transition outline-none placeholder:text-slate-200">
         </div>
 
         <button onclick="handleLogin()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl hover:bg-blue-700 active:scale-95 transition shadow-xl shadow-blue-200 text-lg">授權並進入系統</button>
         
-        <button onclick="closeLoginModal()" class="w-full text-slate-400 text-xs font-bold mt-6 hover:text-slate-900 transition underline underline-offset-4">取消返回門戶</button>
+        <button onclick="closeLoginModal()" class="w-full text-slate-400 text-xs font-bold mt-8 hover:text-slate-900 transition underline underline-offset-4 tracking-widest uppercase">取消</button>
     </div>
 </div>
 
@@ -251,10 +242,7 @@
             startSync();
         } else {
             showToast('❌ 密碼錯誤，請重新確認', 'bg-red-600');
-            const inp = document.getElementById('passwordInput');
-            inp.value = '';
-            inp.classList.add('shake'); // 可以在CSS加震動動畫
-            setTimeout(() => inp.classList.remove('shake'), 500);
+            document.getElementById('passwordInput').value = '';
         }
     };
 
