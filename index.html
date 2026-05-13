@@ -3,158 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>手舞足道集團 - 集團稽核監控中心 V2.0</title>
+    <title>手舞足道集團 - 稽核監控中心 V1.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #2d3139; color: #e2e8f0; }
-        
-        .store-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .store-card:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-5px);
-            border-color: rgba(59, 130, 246, 0.5);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-        }
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: #0f172a; color: white; }
+        .store-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .store-card:hover { transform: translateY(-5px); background-color: rgba(255, 255, 255, 0.1); }
+        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
         
         .compact-table th, .compact-table td { 
-            padding: 0.4rem 0.2rem !important; 
-            border: 1px solid #334155; 
-            vertical-align: middle; 
-            line-height: 1.2;
+            padding: 0.5rem 0.25rem !important; 
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 11px;
         }
+        .q-col { min-width: 50px; text-align: center; font-weight: 800; font-size: 10px; }
         
-        .q-col { 
-            min-width: 45px; 
-            text-align: center; 
-            font-weight: 800; 
-            font-size: 9px; 
+        @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .status-alarm { animation: pulse-red 1s infinite; background-color: #ef4444 !important; }
+
+        /* 確保 Toast 永遠在最前端 */
+        #toastContainer {
+            z-index: 99999 !important;
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            pointer-events: none;
         }
-
-        @keyframes pulse-red-alert { 
-            0% { background-color: #ef4444; } 
-            50% { background-color: #b91c1c; } 
-            100% { background-color: #ef4444; } 
+        .toast-item {
+            pointer-events: auto;
+            animation: slideDown 0.4s ease-out forwards;
         }
-        .alarm-row { animation: pulse-red-alert 2s infinite; }
-
-        .modal-active { display: flex !important; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .custom-scroll::-webkit-scrollbar { height: 4px; width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #1e293b; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
     </style>
 </head>
 <body class="min-h-screen overflow-x-hidden">
 
-<div id="toastContainer" class="fixed bottom-4 right-4 z-[10005] flex flex-col gap-2 pointer-events-none"></div>
+<div id="toastContainer"></div>
 
-<!-- 門市入口 (Portal) -->
-<div id="portalPage" class="p-4 md:p-10 max-w-7xl mx-auto">
+<div id="portalPage" class="p-6 md:p-12 max-w-7xl mx-auto min-h-screen flex flex-col justify-center">
     <div class="text-center mb-12">
-        <h1 class="text-4xl font-black tracking-widest text-white mb-2 italic">手舞足道集團</h1>
-        <p class="text-slate-400 text-sm italic font-bold uppercase tracking-tighter">稽核監控門戶系統系統 · 集團管理端 V2.1</p>
+        <h1 class="text-5xl font-black tracking-tighter text-white mb-3 italic uppercase">手舞足道集團</h1>
+        <div class="flex items-center justify-center gap-3">
+            <span class="h-[1px] w-12 bg-blue-500"></span>
+            <p class="text-slate-400 text-xs font-bold uppercase tracking-[0.3em]">稽核監控門戶系統 · V1.0</p>
+            <span class="h-[1px] w-12 bg-blue-500"></span>
+        </div>
     </div>
 
     <div id="storeGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <!-- 會由 JS 動態生成 23 家門市 -->
+        <!-- 門市按鈕將由 JS 動態生成 -->
     </div>
 </div>
 
-<!-- 登入驗證彈窗 -->
-<div id="loginModal" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden items-center justify-center z-[10010]">
-    <div class="bg-slate-800 p-8 rounded-[2rem] border border-slate-700 shadow-2xl w-full max-w-xs text-center">
-        <div id="loginStoreIcon" class="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/30">
-            <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-7h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-        </div>
-        <h2 id="loginStoreName" class="text-xl font-bold text-white mb-1">門市名稱</h2>
-        <p class="text-[10px] text-slate-500 mb-6 uppercase tracking-widest font-black">身份驗證 REQUIRED</p>
-        <input type="password" id="passwordInput" placeholder="請輸入管理密碼" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-white mb-4 outline-none focus:border-blue-500 transition">
-        <div class="flex flex-col gap-2">
-            <button onclick="attemptLogin()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl hover:bg-blue-500 transition active:scale-95">驗證進入</button>
-            <button onclick="closeLogin()" class="text-slate-500 text-xs font-bold hover:text-slate-300">取消返回</button>
-        </div>
-    </div>
-</div>
-
-<!-- 主要監控儀表板 (Dashboard) -->
-<div id="dashboardPage" class="hidden min-h-screen bg-slate-50 text-slate-900 p-2 md:p-4">
-    <header class="flex justify-between items-center mb-4 bg-white p-4 rounded-2xl shadow-sm border">
+<div id="dashboardPage" class="hidden min-h-screen bg-slate-50 text-slate-900">
+    <header class="bg-white border-b sticky top-0 z-40 p-4 shadow-sm flex justify-between items-center">
         <div class="flex items-center gap-4">
-            <button onclick="backToPortal()" class="bg-slate-100 p-2 rounded-full hover:bg-slate-200 transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            <button onclick="backToPortal()" class="p-2 hover:bg-slate-100 rounded-full transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </button>
             <div>
-                <h1 class="text-xl font-black flex items-center gap-2">
-                    <span id="currentStoreTitle">門市名稱</span>
-                    <span class="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded italic">LIVE MONITORING</span>
-                </h1>
-                <p class="text-slate-400 text-[10px] font-bold">手舞足道集團 · 稽核監控系統 V2.1</p>
+                <h2 id="currentStoreTitle" class="text-xl font-black italic">門市名稱</h2>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Live Monitoring Terminal</p>
             </div>
         </div>
         <div class="flex items-center gap-3">
-            <div id="syncStatus" class="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-600 rounded-full border border-green-100">
+            <div id="syncIndicator" class="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-full text-[10px] font-black border border-green-100">
                 <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                <span class="text-[10px] font-black uppercase">Cloud Sync</span>
+                SYNCING DATA
             </div>
-            <button onclick="window.print()" class="bg-slate-800 text-white px-4 py-1.5 rounded-xl text-xs font-black shadow-lg hover:bg-black transition">匯出報表</button>
+            <button onclick="location.reload()" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-black transition">登出系統</button>
         </div>
     </header>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-        <div class="bg-white p-4 rounded-2xl border shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase">本月稽核總量</p>
-            <h3 id="statTotal" class="text-3xl font-black text-blue-600 italic">0</h3>
+    <main class="p-4 md:p-6 max-w-[1900px] mx-auto">
+        <!-- 統計卡片 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-5 rounded-2xl border shadow-sm">
+                <p class="text-slate-400 text-[10px] font-black uppercase mb-1">本月稽核總量</p>
+                <h3 id="statTotal" class="text-3xl font-black text-slate-900 italic">0</h3>
+            </div>
+            <div id="alarmBox" class="bg-white p-5 rounded-2xl border shadow-sm transition-colors">
+                <p class="text-slate-400 text-[10px] font-black uppercase mb-1">異常待處置</p>
+                <h3 id="statAlarm" class="text-3xl font-black text-red-600 italic">0</h3>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border shadow-sm md:col-span-2 overflow-hidden">
+                <p class="text-slate-400 text-[10px] font-black uppercase mb-1">師傅表現快報 (★/📝)</p>
+                <div id="masseurStatsList" class="flex gap-2 overflow-x-auto pb-1"></div>
+            </div>
         </div>
-        <div class="bg-white p-4 rounded-2xl border shadow-sm border-l-4 border-l-red-500">
-            <p class="text-[10px] font-bold text-red-400 uppercase">待處理異常</p>
-            <h3 id="statAlarm" class="text-3xl font-black text-red-500 italic">0</h3>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border shadow-sm col-span-2 overflow-hidden flex flex-col justify-center">
-            <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">師傅表現概況 (★/📝)</p>
-            <div id="masseurStats" class="flex gap-2 overflow-x-auto custom-scroll pb-1"></div>
-        </div>
-    </div>
 
-    <div class="bg-white rounded-2xl shadow-xl border overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[1400px] compact-table">
-                <thead>
-                    <tr class="text-[10px] font-black text-slate-500 uppercase bg-slate-50 border-b">
-                        <th class="w-10 text-center">序</th>
-                        <th class="w-32">服務時間</th>
-                        <th class="w-16 text-center">師傅</th>
-                        <th class="q-col text-blue-600 bg-blue-50/30">Q1 介紹</th>
-                        <th class="q-col text-blue-600 bg-blue-50/30">Q2 力道</th>
-                        <th class="q-col text-blue-600 bg-blue-50/30">Q3 異味</th>
-                        <th class="q-col text-blue-600 bg-blue-50/30">Q4 時間</th>
-                        <th class="q-col text-blue-600 bg-blue-50/30">Q5 禮貌</th>
-                        <th class="q-col text-blue-600 bg-blue-50/30">Q6 觸碰</th>
-                        <th class="q-col text-blue-600 bg-blue-50/30">Q7 禁動</th>
-                        <th class="q-col text-red-600 bg-red-50/30">Q8 打卡</th>
-                        <th class="q-col text-red-600 bg-red-50/30">Q9 名片</th>
-                        <th class="q-col text-red-600 bg-red-50/30">Q10 老點</th>
-                        <th class="w-16 text-center">狀態</th>
-                        <th class="min-w-[150px]">管理備註</th>
-                        <th class="w-24 text-center">操作</th>
-                    </tr>
-                </thead>
-                <tbody id="reportTableBody" class="text-[11px] divide-y"></tbody>
-            </table>
+        <!-- 數據表格 -->
+        <div class="bg-white rounded-3xl border shadow-xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse compact-table min-w-[1400px]">
+                    <thead class="bg-slate-50 border-b">
+                        <tr id="tableHeaderRow">
+                            <!-- 標題由 JS 根據門市類型動態產生 -->
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody" class="divide-y divide-slate-100">
+                        <!-- 資料列 -->
+                    </tbody>
+                </table>
+            </div>
         </div>
+    </main>
+</div>
+
+<div id="loginModal" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md hidden items-center justify-center z-[10000]">
+    <div class="bg-white p-10 rounded-[3rem] shadow-2xl w-full max-w-sm text-center border-t-8 border-blue-600">
+        <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        </div>
+        <h2 id="loginModalTitle" class="text-2xl font-black text-slate-900 mb-1">中港行館</h2>
+        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-8">Security Verification Required</p>
+        <input type="password" id="passwordInput" placeholder="請輸入管理密碼" class="w-full p-4 bg-slate-100 border-2 border-transparent focus:border-blue-500 rounded-2xl text-center text-xl font-bold transition mb-4 outline-none">
+        <button onclick="handleLogin()" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl hover:bg-blue-700 active:scale-95 transition shadow-lg shadow-blue-200">授權並進入</button>
+        <button onclick="closeLoginModal()" class="w-full text-slate-400 text-xs font-bold mt-4 hover:text-slate-600 transition">取消返回</button>
     </div>
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, onSnapshot, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBY2RVaNjkKMJJAdm3_uLeiBhcDaXZEhFY",
@@ -162,13 +142,11 @@
         projectId: "surveys2-ff8a8",
         storageBucket: "surveys2-ff8a8.firebasestorage.app",
         messagingSenderId: "147800559221",
-        appId: "1:147800559221:web:18df683290fee3324fb23c",
-        measurementId: "G-6F0HNMSCCB"
+        appId: "1:147800559221:web:18df683290fee3324fb23c"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app);
 
     const stores = [
         { id: 'zhonggang', name: '中港行館', pw: 'zg888' },
@@ -196,172 +174,175 @@
         { id: 'jing', name: '婧仕女微旅', pw: 'jn888' }
     ];
 
-    let currentStore = null;
-    let unsub = null;
-    let rawData = [];
+    const storeSpecificLabels = {
+        'pasha': { q1:"流程介紹", q2:"洗髮力道", q3:"異味/煙味", q4:"時間掌握", q5:"服務禮貌", q6:"肢體觸碰", q7:"禁動項目", q8:"打卡推廣", q9:"產品建議", q10:"回訪意願" },
+        'jing': { q1:"流程說明", q2:"SPA力道", q3:"環境氣味", q4:"時間掌握", q5:"服務禮貌", q6:"隱私保護", q7:"禁動項目", q8:"打卡推廣", q9:"名片提供", q10:"回訪預約" },
+        'default': { q1:"開始介紹", q2:"按摩力道", q3:"異味/煙味", q4:"時間掌握", q5:"服務禮貌", q6:"肢體觸碰", q7:"禁止動作", q8:"打卡推廣", q9:"提供名片", q10:"老點意願" }
+    };
+
     const negKeywords = ["完全沒問", "完全不問", "味道很重", "感覺很差", "言語不當", "非常危險", "完全沒說", "沒有給名片", "絕對不會", "不願意"];
-    const labels = { q1:"介紹", q2:"力道", q3:"異味", q4:"時間", q5:"禮貌", q6:"觸碰", q7:"禁動", q8:"打卡", q9:"名片", q10:"老點" };
 
-    function initPortal() {
+    let currentStore = null;
+    let rawData = [];
+
+    window.onload = () => {
         const grid = document.getElementById('storeGrid');
-        grid.innerHTML = stores.map(s => `
-            <button onclick="selectStore('${s.id}')" class="store-card p-6 rounded-[2rem] flex flex-col items-center justify-center gap-3 group">
-                <div class="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center group-hover:bg-blue-600 transition-colors shadow-lg">
-                    <svg class="w-6 h-6 text-slate-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+        stores.forEach(store => {
+            const btn = document.createElement('button');
+            btn.className = 'store-card glass-panel p-6 rounded-3xl flex flex-col items-center justify-center gap-3 hover:bg-blue-600 group';
+            btn.innerHTML = `
+                <div class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-white/20">
+                    <svg class="w-6 h-6 text-slate-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-10V4m0 10V4m0 10h1m-1 4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 </div>
-                <span class="text-sm font-bold text-slate-300 group-hover:text-white">${s.name}</span>
-            </button>
-        `).join('');
-    }
+                <span class="text-sm font-black tracking-tighter group-hover:text-white">${store.name}</span>
+            `;
+            btn.onclick = () => openLoginModal(store);
+            grid.appendChild(btn);
+        });
 
-    window.selectStore = (id) => {
-        currentStore = stores.find(s => s.id === id);
-        document.getElementById('loginStoreName').innerText = currentStore.name;
-        document.getElementById('loginModal').classList.add('modal-active');
-        document.getElementById('passwordInput').value = '';
+        // 監聽 Enter 鍵登入
+        document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+    };
+
+    window.openLoginModal = (store) => {
+        currentStore = store;
+        document.getElementById('loginModalTitle').innerText = store.name;
+        document.getElementById('loginModal').classList.remove('hidden');
+        document.getElementById('loginModal').classList.add('flex');
         document.getElementById('passwordInput').focus();
     };
 
-    window.closeLogin = () => document.getElementById('loginModal').classList.remove('modal-active');
+    window.closeLoginModal = () => {
+        document.getElementById('loginModal').classList.add('hidden');
+        document.getElementById('loginModal').classList.remove('flex');
+        document.getElementById('passwordInput').value = '';
+    };
 
-    window.attemptLogin = async () => {
+    window.handleLogin = () => {
         const input = document.getElementById('passwordInput').value;
         if (input === currentStore.pw || input === 'master888') {
-            await signInAnonymously(auth);
-            showDashboard();
+            showToast('授權成功，正在載入資料...', 'bg-green-600');
+            document.getElementById('portalPage').classList.add('hidden');
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('dashboardPage').classList.remove('hidden');
+            document.getElementById('currentStoreTitle').innerText = currentStore.name;
+            startSync();
         } else {
-            showToast("密碼錯誤，請重新輸入", "bg-red-600");
+            showToast('密碼錯誤，請重新輸入', 'bg-red-600');
+            document.getElementById('passwordInput').value = '';
         }
     };
 
-    function showDashboard() {
-        document.getElementById('portalPage').classList.add('hidden');
-        document.getElementById('loginModal').classList.remove('modal-active');
-        document.getElementById('dashboardPage').classList.remove('hidden');
-        document.getElementById('currentStoreTitle').innerText = currentStore.name;
-        startSync();
+    function showToast(msg, bg) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast-item ${bg} text-white px-8 py-4 rounded-2xl shadow-2xl font-black text-lg flex items-center gap-3 border-2 border-white/20`;
+        toast.innerHTML = `<span class="text-2xl">🚨</span> ${msg}`;
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-20px)';
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
     }
 
-    window.backToPortal = () => {
-        if (unsub) unsub();
-        document.getElementById('dashboardPage').classList.add('hidden');
-        document.getElementById('portalPage').classList.remove('hidden');
-    };
-
     function startSync() {
-        const appId = 'shouwuzudao-audit-v2';
-        const path = ['artifacts', appId, 'public', 'data', currentStore.id];
+        const path = `surveys/${currentStore.id}/records`;
+        const q = query(collection(db, path), orderBy("createdAt", "desc"));
         
-        unsub = onSnapshot(collection(db, ...path), (sn) => {
-            rawData = sn.docs.map(d => ({ id: d.id, ...d.data() }))
-                        .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        onSnapshot(q, (snapshot) => {
+            rawData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderDashboard();
         }, (err) => {
-            showToast("資料讀取權限錯誤", "bg-red-900");
+            console.error("Firebase Error:", err);
+            showToast("資料讀取失敗，請檢查權限", "bg-orange-600");
         });
     }
 
     function renderDashboard() {
         const body = document.getElementById('reportTableBody');
-        const pendingAlarms = rawData.filter(d => 
-            Object.entries(d.ratings || {}).some(([k, v]) => !['q8', 'q9'].includes(k) && negKeywords.includes(v)) && 
-            d.adminStatus !== 'resolved'
-        );
+        const activeLabels = storeSpecificLabels[currentStore.id] || storeSpecificLabels.default;
+        
+        // 渲染表頭
+        const headerRow = document.getElementById('tableHeaderRow');
+        headerRow.innerHTML = `
+            <th class="w-10 text-center">序</th>
+            <th class="w-32">服務日期</th>
+            <th class="w-16 text-center">師傅</th>
+            ${Object.entries(activeLabels).map(([key, label]) => {
+                const isRed = ['q8', 'q9', 'q10'].includes(key);
+                return `<th class="q-col ${isRed ? 'text-red-600 bg-red-50/50' : 'text-blue-600 bg-blue-50/50'}">${label}</th>`;
+            }).join('')}
+            <th class="w-16 text-center">狀態</th>
+            <th class="min-w-[150px]">備註</th>
+        `;
 
-        document.getElementById('statTotal').innerText = rawData.length;
-        document.getElementById('statAlarm').innerText = pendingAlarms.length;
-
-        updateMasseurStats();
-
+        // 渲染資料列
         if (rawData.length === 0) {
-            body.innerHTML = '<tr><td colspan="16" class="py-20 text-center text-slate-400 font-bold italic">目前無稽核數據</td></tr>';
+            body.innerHTML = '<tr><td colspan="20" class="py-20 text-center text-slate-400 font-black italic uppercase">No Data Found</td></tr>';
             return;
         }
 
-        body.innerHTML = rawData.map((d, i) => {
-            const r = d.ratings || {};
-            const isCritical = Object.entries(r).some(([k, v]) => !['q8', 'q9'].includes(k) && negKeywords.includes(v));
-            const isResolved = d.adminStatus === 'resolved';
-            const ts = d.createdAt ? new Date(d.createdAt.seconds*1000).toLocaleString('zh-TW', {month:'numeric',day:'numeric',hour:'numeric',minute:'numeric'}) : 'Syncing...';
+        let pendingCount = 0;
+        body.innerHTML = rawData.map((d, index) => {
+            const ratings = d.ratings || {};
+            const isAlarm = Object.entries(ratings).some(([k, v]) => !['q8', 'q9'].includes(k) && negKeywords.includes(v)) && d.adminStatus !== 'resolved';
+            if (isAlarm) pendingCount++;
 
             return `
-                <tr class="${isCritical && !isResolved ? 'alarm-row text-white' : ''}">
-                    <td class="text-center font-black opacity-30">${i+1}</td>
-                    <td class="font-mono text-[9px]">${ts}</td>
-                    <td class="text-center"><span class="bg-slate-800 text-white px-1.5 py-0.5 rounded font-black italic">#${String(d.masseurId).padStart(2,'0')}</span></td>
-                    ${Object.keys(labels).map(k => {
-                        const v = r[k] || '-';
-                        const isNeg = negKeywords.includes(v);
-                        const colorClass = isNeg ? 'text-red-500 bg-red-500/10 font-black' : 'text-slate-600';
-                        return `<td class="q-col ${colorClass}">${v}</td>`;
+                <tr class="${isAlarm ? 'bg-red-50/50' : ''}">
+                    <td class="text-center font-bold text-slate-300">${index + 1}</td>
+                    <td class="font-mono text-[10px]">${d.serviceDate || '-'}</td>
+                    <td class="text-center"><span class="bg-slate-800 text-white px-2 py-0.5 rounded italic font-black">${d.masseurId || '??'}</span></td>
+                    ${Object.keys(activeLabels).map(k => {
+                        const val = ratings[k] || '-';
+                        const isNeg = negKeywords.includes(val);
+                        return `<td class="q-col ${isNeg ? 'text-red-600 font-black' : 'text-slate-500'}">${val}</td>`;
                     }).join('')}
                     <td class="text-center">
-                        <span class="px-2 py-0.5 rounded-full font-black text-[9px] ${isResolved ? 'bg-blue-600 text-white' : (isCritical ? 'bg-white text-red-600' : 'bg-green-100 text-green-600')}">
-                            ${isResolved ? '已處理' : (isCritical ? '異常' : '正常')}
+                        <span class="px-2 py-1 rounded-full text-[9px] font-black text-white ${d.adminStatus === 'resolved' ? 'bg-blue-500' : (isAlarm ? 'status-alarm' : 'bg-green-500')}">
+                            ${d.adminStatus === 'resolved' ? '完成' : (isAlarm ? '異常' : '正常')}
                         </span>
                     </td>
-                    <td class="italic text-slate-400 truncate max-w-[200px] text-[10px] font-bold">${d.adminRemark || '尚未填寫處理紀錄'}</td>
-                    <td class="text-center">
-                        <button onclick="handleResolve('${d.id}')" class="bg-slate-100 text-slate-800 px-3 py-1 rounded-lg text-[10px] font-black hover:bg-blue-600 hover:text-white transition">標記完成</button>
-                    </td>
+                    <td class="text-[10px] text-slate-400 italic">${d.adminRemark || '無'}</td>
                 </tr>
             `;
         }).join('');
+
+        document.getElementById('statTotal').innerText = rawData.length;
+        document.getElementById('statAlarm').innerText = pendingCount;
+        document.getElementById('alarmBox').className = pendingCount > 0 ? 'bg-red-50 p-5 rounded-2xl border border-red-200 shadow-sm' : 'bg-white p-5 rounded-2xl border shadow-sm';
+        
+        updateMasseurStats();
     }
 
     function updateMasseurStats() {
         const stats = {};
         rawData.forEach(d => {
-            if(!stats[d.masseurId]) stats[d.masseurId] = { s:0, f:0 };
-            if(d.marketingAction === 'Reviewed') stats[d.masseurId].s++;
-            if(d.suggestions && d.suggestions.length > 5) stats[d.masseurId].f++;
+            const mid = d.masseurId || '未知';
+            if (!stats[mid]) stats[mid] = { stars: 0, reviews: 0 };
+            if (d.marketingAction === 'Reviewed') stats[mid].stars++;
+            if (d.suggestions && d.suggestions.length > 5) stats[mid].reviews++;
         });
 
-        document.getElementById('masseurStats').innerHTML = Object.entries(stats).map(([id, s]) => `
-            <div class="flex items-center gap-2 bg-slate-50 border px-3 py-1 rounded-full shrink-0">
-                <span class="text-[10px] font-black text-slate-800 italic">#${String(id).padStart(2,'0')}</span>
-                <span class="text-[11px] font-black text-amber-500">${s.s}★</span>
-                <span class="text-[11px] font-black text-blue-500">${s.f}📝</span>
+        document.getElementById('masseurStatsList').innerHTML = Object.entries(stats).map(([id, s]) => `
+            <div class="flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-xl shrink-0">
+                <span class="text-[10px] font-black text-slate-900">#${id}</span>
+                <span class="text-[11px] font-black text-amber-500">${s.stars}★</span>
+                <span class="text-[11px] font-black text-blue-500">${s.reviews}📝</span>
             </div>
         `).join('');
     }
 
-    window.handleResolve = async (id) => {
-        const remark = prompt("請輸入處理紀錄：", "已告知管理處並進行個別輔導。");
-        if (remark === null) return;
-        
-        try {
-            const appId = 'shouwuzudao-audit-v2';
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', currentStore.id, id);
-            await updateDoc(docRef, {
-                adminStatus: 'resolved',
-                adminRemark: remark,
-                handledAt: serverTimestamp()
-            });
-            showToast("紀錄更新完成", "bg-green-600");
-        } catch (e) {
-            showToast("更新失敗", "bg-red-600");
-        }
+    window.backToPortal = () => {
+        document.getElementById('dashboardPage').classList.add('hidden');
+        document.getElementById('portalPage').classList.remove('hidden');
+        rawData = [];
     };
 
-    function showToast(msg, bg) {
-        const toast = document.createElement('div');
-        toast.className = `${bg} text-white px-6 py-3 rounded-2xl shadow-2xl font-bold flex items-center gap-2 transition-all duration-500 transform translate-y-0`;
-        toast.innerHTML = `<span>⚡</span> ${msg}`;
-        document.getElementById('toastContainer').prepend(toast);
-        setTimeout(() => {
-            toast.classList.add('opacity-0', 'translate-y-4');
-            setTimeout(() => toast.remove(), 500);
-        }, 3000);
-    }
-
-    window.onload = () => {
-        initPortal();
-        document.getElementById('passwordInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') attemptLogin();
-        });
-    };
 </script>
-
 </body>
 </html>
